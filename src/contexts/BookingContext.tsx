@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Barber, TimeSlot } from '@/lib/mockData';
+import { Barber } from '@/lib/mockData';
+import { TimeSlot } from '@/lib/types';
 
 interface BookingState {
   selectedBarber: Barber | null;
