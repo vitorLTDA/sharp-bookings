@@ -7,7 +7,7 @@ if (!import.meta.env.VITE_API_URL) {
 }
 
 export const api = axios.create({
-	baseURL: `${import.meta.env.VITE_API_URL}/api`,
+	baseURL: `${import.meta.env.VITE_API_URL}`,
 	withCredentials: true,
 });
 
@@ -30,7 +30,11 @@ api.interceptors.response.use(
 	async error => {
 		const originalRequest = error.config;
 
-		if (error.response?.status === 401 && !originalRequest._retry) {
+		if (
+			error.response?.status === 401 &&
+			!originalRequest._retry &&
+			error.response.data?.error === "Access token has expired"
+		) {
 			originalRequest._retry = true;
 
 			if (isRefreshing) {

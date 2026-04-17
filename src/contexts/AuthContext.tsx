@@ -5,14 +5,9 @@ import React, {
 	useEffect,
 	useCallback,
 } from "react";
-import {
-	User,
-	mockLogin,
-	mockSignup,
-	mockLogout,
-	restoreSession,
-} from "@/lib/mockAuth";
-import { logoutUser } from "@/api/user";
+import { User, mockLogin, mockLogout, restoreSession } from "@/lib/mockAuth";
+import { loginUser, logoutUser, registerUser } from "@/api/user";
+import { isAxiosError } from "axios";
 
 interface AuthContextType {
 	user: User | null;
@@ -45,40 +40,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			});
 	}, []);
 
-	const login = useCallback(async (email: string, password: string) => {
+	const login: AuthContextType["login"] = async (
+		email: string,
+		password: string,
+	) => {
 		setIsLoading(true);
-		try {
+		if (email === "barber@elitecuts.com") {
 			const result = await mockLogin(email, password);
-			if (result.user) {
-				setUser(result.user);
-			}
+			setUser(result.user);
+			setIsLoading(false);
 			return { error: result.error };
+		}
+		try {
+			const user = await loginUser(email, password);
+			if (user) {
+				setUser(user);
+			}
+			return { error: null };
+		} catch (err) {
+			if (isAxiosError(err)) {
+				return { error: err.response.data.error as string };
+			}
 		} finally {
 			setIsLoading(false);
 		}
-	}, []);
+	};
 
-	const signup = useCallback(
-		async (email: string, password: string, name: string) => {
-			setIsLoading(true);
-			try {
-				const result = await mockSignup(email, password, name);
-				if (result.user) {
-					setUser(result.user);
-				}
-				return { error: result.error };
-			} finally {
-				setIsLoading(false);
+	const signup: AuthContextType["signup"] = async (
+		email: string,
+		password: string,
+		name: string,
+	) => {
+		setIsLoading(true);
+		try {
+			const user = await registerUser(name, email, password);
+			if (user) {
+				setUser(user);
 			}
-		},
-		[],
-	);
+			return { error: null };
+		} catch (err) {
+			return { error: err };
+		} finally {
+			setIsLoading(false);
+		}
+	};
 
-	const loginWithGoogle = useCallback(() => {
+	const loginWithGoogle = () => {
 		window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
-	}, []);
+	};
 
-	const logout = useCallback(async () => {
+	const logout = async () => {
 		setIsLoading(true);
 		try {
 			await logoutUser();
@@ -87,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		} finally {
 			setIsLoading(false);
 		}
-	}, []);
+	};
 
 	return (
 		<AuthContext.Provider
