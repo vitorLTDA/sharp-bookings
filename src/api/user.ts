@@ -10,12 +10,40 @@ export async function fetchLoggedUser() {
 	}
 }
 
+export async function loginUser(email: string, password: string) {
+	try {
+		const response = await api.post<User>("/auth/login", {
+			email,
+			password,
+		});
+		return response.data;
+	} catch (error) {
+		console.error("Error logging in:", error);
+		throw error;
+	}
+}
+
+export async function registerUser(
+	name: string,
+	email: string,
+	password: string,
+) {
+	try {
+		const response = await api.post<User>("/auth/register", {
+			name,
+			email,
+			password,
+		});
+		return response.data;
+	} catch (error) {
+		console.error("Error registering user:", error);
+		throw error;
+	}
+}
+
 export async function logoutUser() {
 	try {
-		await fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
-			method: "POST",
-			credentials: "include",
-		});
+		await api.post(`/auth/logout`);
 	} catch (error) {
 		console.error("Error logging out:", error);
 	}

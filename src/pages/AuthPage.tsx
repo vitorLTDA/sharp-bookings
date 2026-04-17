@@ -32,7 +32,7 @@ export default function AuthPage() {
 		setIsSubmitting(true);
 
 		try {
-			let result;
+			let result: { error: string | null };
 			if (mode === "login") {
 				result = await login(email, password);
 			} else {
