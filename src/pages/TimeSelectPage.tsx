@@ -1,28 +1,51 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useBooking } from '@/contexts/BookingContext';
-import { generateTimeSlots, TimeSlot } from '@/lib/mockData';
-import { ArrowLeft, ArrowRight, Check, Clock, X } from 'lucide-react';
+import { getAvailableSlots } from '@/api/availability';
+import { TimeSlot } from '@/lib/types';
+import { ArrowLeft, ArrowRight, Check, Clock, X, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function TimeSelectPage() {
   const navigate = useNavigate();
   const { booking, setSelectedTime } = useBooking();
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Redirect if no date selected
+  const fetchTimeSlots = useCallback(async () => {
+    if (!booking.selectedDate) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const dateStr = format(booking.selectedDate, 'yyyy-MM-dd');
+      const slots = await getAvailableSlots(dateStr);
+      setTimeSlots(slots);
+    } catch (err) {
+      setError('Failed to load available times. Please try again.');
+      setTimeSlots([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [booking.selectedDate]);
+
   useEffect(() => {
     if (!booking.selectedBarber || !booking.selectedDate) {
       navigate('/book');
     }
   }, [booking.selectedBarber, booking.selectedDate, navigate]);
 
-  // Generate time slots (in real app, this would fetch from backend)
-  const timeSlots = useMemo(() => generateTimeSlots(), [booking.selectedDate]);
+  useEffect(() => {
+    fetchTimeSlots();
+  }, [fetchTimeSlots]);
 
   const getSlotStyles = (slot: TimeSlot, isSelected: boolean) => {
     if (slot.status === 'booked') {
@@ -110,25 +133,45 @@ export default function TimeSelectPage() {
                 </div>
 
                 {/* Time Slots Grid */}
-                <div className="grid grid-cols-3 gap-3">
-                  {timeSlots.map((slot) => {
-                    const isSelected = booking.selectedTime === slot.time;
-                    return (
-                      <button
-                        key={slot.time}
-                        onClick={() => handleTimeSelect(slot)}
-                        disabled={slot.status !== 'available'}
-                        className={cn(
-                          'flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-colors',
-                          getSlotStyles(slot, isSelected)
-                        )}
-                      >
-                        {getSlotIcon(slot)}
-                        {slot.time}
-                      </button>
-                    );
-                  })}
-                </div>
+                {loading ? (
+                  <div className="grid grid-cols-3 gap-3">
+                    {[...Array(9)].map((_, i) => (
+                      <Skeleton key={i} className="h-12 w-full rounded-lg" />
+                    ))}
+                  </div>
+                ) : error ? (
+                  <div className="flex flex-col items-center gap-4 py-6">
+                    <AlertCircle className="h-8 w-8 text-destructive" />
+                    <p className="text-center text-sm text-destructive">{error}</p>
+                    <Button variant="outline" size="sm" onClick={fetchTimeSlots}>
+                      Try Again
+                    </Button>
+                  </div>
+                ) : timeSlots.length === 0 ? (
+                  <div className="py-6 text-center text-sm text-muted-foreground">
+                    No available slots
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-3">
+                    {timeSlots.map((slot) => {
+                      const isSelected = booking.selectedTime === slot.time;
+                      return (
+                        <button
+                          key={slot.time}
+                          onClick={() => handleTimeSelect(slot)}
+                          disabled={slot.status !== 'available'}
+                          className={cn(
+                            'flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-colors',
+                            getSlotStyles(slot, isSelected)
+                          )}
+                        >
+                          {getSlotIcon(slot)}
+                          {slot.time}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
 

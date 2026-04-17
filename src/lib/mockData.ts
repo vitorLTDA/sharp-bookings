@@ -6,11 +6,6 @@ export interface Barber {
   bio: string;
 }
 
-export interface TimeSlot {
-  time: string;
-  status: 'available' | 'reserved' | 'booked';
-}
-
 export interface Appointment {
   id: string;
   barberId: string;
@@ -45,22 +40,6 @@ export const barbers: Barber[] = [
     bio: 'Known for detailed fade work and creative designs.',
   },
 ];
-
-// Generate time slots for a given date (9 AM to 6 PM, 1-hour slots)
-export function generateTimeSlots(): TimeSlot[] {
-  const slots: TimeSlot[] = [];
-  for (let hour = 9; hour <= 17; hour++) {
-    const time = `${hour.toString().padStart(2, '0')}:00`;
-    // Randomly assign some slots as booked/reserved for demo
-    const random = Math.random();
-    let status: TimeSlot['status'] = 'available';
-    if (random < 0.2) status = 'booked';
-    else if (random < 0.3) status = 'reserved';
-    
-    slots.push({ time, status });
-  }
-  return slots;
-}
 
 export const shopInfo = {
   name: 'Elite Cuts',
