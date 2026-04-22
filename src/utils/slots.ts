@@ -14,5 +14,5 @@ export function transformSlot(slot: AvailabilitySlot): TimeSlot {
 	};
 	const status = statusMap[slot.status] || "available";
 
-	return { time, status };
+	return { id: slot.id, time, status };
 }

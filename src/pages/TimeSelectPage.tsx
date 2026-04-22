@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 
 export default function TimeSelectPage() {
   const navigate = useNavigate();
-  const { booking, setSelectedTime } = useBooking();
+  const { booking, setSelectedTime, setSelectedSlotId } = useBooking();
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +69,7 @@ export default function TimeSelectPage() {
   const handleTimeSelect = (slot: TimeSlot) => {
     if (slot.status === 'available') {
       setSelectedTime(slot.time);
+      setSelectedSlotId(slot.id);
     }
   };
 
