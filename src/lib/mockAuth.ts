@@ -4,6 +4,7 @@ export interface User {
 	id: string;
 	email: string;
 	name: string;
+	phone?: string;
 	role: "customer" | "barber" | "admin";
 	avatar?: string;
 }

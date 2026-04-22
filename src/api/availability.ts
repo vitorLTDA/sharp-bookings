@@ -20,3 +20,19 @@ export async function getAvailableSlots(date: string): Promise<TimeSlot[]> {
 		throw error;
 	}
 }
+
+export interface CustomerInfo {
+	name: string;
+	phone: string;
+	email: string;
+}
+
+export async function reserveSlot(slotId: string, customerInfo: CustomerInfo) {
+	try {
+		const response = await api.post("/slots/reserve", { slotId, ...customerInfo });
+		return response.data;
+	} catch (error) {
+		console.error("Error reserving slot:", error);
+		throw error;
+	}
+}

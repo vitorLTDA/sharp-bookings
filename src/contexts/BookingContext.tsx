@@ -6,6 +6,7 @@ interface BookingState {
   selectedBarber: Barber | null;
   selectedDate: Date | null;
   selectedTime: string | null;
+  selectedSlotId: string | null;
   customerName: string;
   customerPhone: string;
   customerEmail: string;
@@ -16,6 +17,7 @@ interface BookingContextType {
   setSelectedBarber: (barber: Barber | null) => void;
   setSelectedDate: (date: Date | null) => void;
   setSelectedTime: (time: string | null) => void;
+  setSelectedSlotId: (id: string | null) => void;
   setCustomerInfo: (name: string, phone: string, email: string) => void;
   resetBooking: () => void;
 }
@@ -24,6 +26,7 @@ const initialState: BookingState = {
   selectedBarber: null,
   selectedDate: null,
   selectedTime: null,
+  selectedSlotId: null,
   customerName: '',
   customerPhone: '',
   customerEmail: '',
@@ -46,6 +49,10 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     setBooking((prev) => ({ ...prev, selectedTime: time }));
   };
 
+  const setSelectedSlotId = (id: string | null) => {
+    setBooking((prev) => ({ ...prev, selectedSlotId: id }));
+  };
+
   const setCustomerInfo = (name: string, phone: string, email: string) => {
     setBooking((prev) => ({
       ...prev,
@@ -66,6 +73,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
         setSelectedBarber,
         setSelectedDate,
         setSelectedTime,
+        setSelectedSlotId,
         setCustomerInfo,
         resetBooking,
       }}
