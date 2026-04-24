@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +22,8 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { userInfoSchema } from "@/types/userInfoSchema";
+import parsePhoneNumberFromString from "libphonenumber-js";
 
 export default function ConfirmPage() {
 	const navigate = useNavigate();
@@ -35,6 +37,10 @@ export default function ConfirmPage() {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isConfirmed, setIsConfirmed] = useState(false);
 	const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+	const parsedPhoneNumber = useMemo(
+		() => parsePhoneNumberFromString(phone, "BR"),
+		[phone],
+	);
 
 	useEffect(() => {
 		if (
@@ -48,21 +54,46 @@ export default function ConfirmPage() {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-
+		if (!parsedPhoneNumber || !parsedPhoneNumber.isValid()) {
+			toast({
+				title: "Erro ao enviar informações",
+				description: "Número de telefone inválido.",
+				variant: "destructive",
+			});
+		}
 		if (!name || !phone || !email) {
 			toast({
-				title: "Missing Information",
-				description: "Please fill in all fields.",
+				title: "Erro ao enviar informações",
+				description: "Preencha todos os campos.",
+				variant: "destructive",
+			});
+			return;
+		}
+		const parsedPhone = `${parsedPhoneNumber.countryCallingCode}${parsedPhoneNumber.nationalNumber}`;
+		const parsedInfo = userInfoSchema.safeParse({
+			name,
+			phone: parsedPhone,
+			email,
+		});
+		if (parsedInfo.error) {
+			const errorMessage = JSON.parse(parsedInfo.error.message);
+			toast({
+				title: "Erro ao enviar informações",
+				description: errorMessage[0].message,
 				variant: "destructive",
 			});
 			return;
 		}
 
 		setIsSubmitting(true);
-		setCustomerInfo(name, phone, email);
+		setCustomerInfo(name, parsedPhone, email);
 
 		try {
-			await reserveSlot(booking.selectedSlotId!, { name, phone, email });
+			await reserveSlot(booking.selectedSlotId!, {
+				name,
+				phone: parsedPhone,
+				email,
+			});
 			setIsSubmitting(false);
 			setIsConfirmed(true);
 			setShowSuccessDialog(true);
@@ -93,8 +124,8 @@ export default function ConfirmPage() {
 		} catch (error) {
 			setIsSubmitting(false);
 			toast({
-				title: "Error",
-				description: "Failed to reserve slot. Please try again.",
+				title: "Erro",
+				description: "Falha ao reservar, tente novamente.",
 				variant: "destructive",
 			});
 		}
@@ -292,9 +323,19 @@ export default function ConfirmPage() {
 											<Input
 												id="phone"
 												type="tel"
-												placeholder="(555) 123-4567"
+												placeholder="(55) 91234-5678"
 												value={phone}
-												onChange={e => setPhone(e.target.value)}
+												onChange={e => {
+													const phoneNumber = parsePhoneNumberFromString(
+														e.target.value,
+														"BR",
+													);
+													setPhone(
+														phoneNumber
+															? phoneNumber.formatNational()
+															: e.target.value,
+													);
+												}}
 												required
 											/>
 										</div>
