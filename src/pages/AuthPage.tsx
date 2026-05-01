@@ -12,14 +12,22 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { Scissors, Mail, Lock, User, AlertCircle } from "lucide-react";
+import { Scissors, Mail, Lock, User, AlertCircle, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
+import parsePhoneNumberFromString from "libphonenumber-js";
+import { z } from "zod";
+
+const phoneSchema = z
+	.string("O número de telefone é obrigatório.")
+	.min(13, "O número de telefone deve ter 13 dígitos.");
 
 export default function AuthPage() {
 	const [mode, setMode] = useState<"login" | "signup">("login");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [name, setName] = useState("");
+	const [phone, setPhone] = useState("");
+	const [phoneError, setPhoneError] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -36,7 +44,21 @@ export default function AuthPage() {
 			if (mode === "login") {
 				result = await login(email, password);
 			} else {
-				result = await signup(email, password, name);
+				const parsedPhone = parsePhoneNumberFromString(phone, "BR");
+				if (!parsedPhone || !parsedPhone.isValid()) {
+					setPhoneError("Número de telefone inválido.");
+					setIsSubmitting(false);
+					return;
+				}
+				try {
+					phoneSchema.parse(phone);
+				} catch {
+					setPhoneError("O número de telefone deve ter 11 dígitos.");
+					setIsSubmitting(false);
+					return;
+				}
+				const phoneData = `${parsedPhone.countryCallingCode}${parsedPhone.nationalNumber}`;
+				result = await signup(email, password, name, phoneData);
 			}
 
 			if (result.error) {
@@ -97,24 +119,56 @@ export default function AuthPage() {
 
 						<form onSubmit={handleSubmit} className="space-y-4">
 							{mode === "signup" && (
-								<div className="space-y-2">
-									<Label htmlFor="name">Full Name</Label>
-									<div className="relative">
-										<User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-										<Input
-											id="name"
-											type="text"
-											placeholder="John Doe"
-											value={name}
-											onChange={e => setName(e.target.value)}
-											className="pl-10"
-											required={mode === "signup"}
-										/>
+								<>
+									<div className="">
+										<Label htmlFor="name">Full Name</Label>
+										<div className="relative">
+											<User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+											<Input
+												id="name"
+												type="text"
+												placeholder="John Doe"
+												value={name}
+												onChange={e => setName(e.target.value)}
+												className="pl-10"
+												required={mode === "signup"}
+											/>
+										</div>
 									</div>
-								</div>
+									<div className="">
+										<Label htmlFor="phone">Phone</Label>
+										<div className="relative">
+											<Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+											<Input
+												id="phone"
+												type="tel"
+												placeholder="(55) 91234-5678"
+												value={phone}
+												onChange={e => {
+													const phoneNumber = parsePhoneNumberFromString(
+														e.target.value,
+														"BR",
+													);
+													const formatted = phoneNumber
+														? phoneNumber.formatNational()
+														: e.target.value;
+													setPhone(formatted);
+													setPhoneError(null);
+												}}
+												className="pl-10"
+												required={mode === "signup"}
+											/>
+										</div>
+										{phoneError && (
+											<p className="text-sm text-destructive mt-1">
+												{phoneError}
+											</p>
+										)}
+									</div>
+								</>
 							)}
 
-							<div className="space-y-2">
+							<div className="">
 								<Label htmlFor="email">Email</Label>
 								<div className="relative">
 									<Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -130,7 +184,7 @@ export default function AuthPage() {
 								</div>
 							</div>
 
-							<div className="space-y-2">
+							<div className="">
 								<Label htmlFor="password">Password</Label>
 								<div className="relative">
 									<Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

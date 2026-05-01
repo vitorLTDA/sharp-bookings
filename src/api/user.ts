@@ -27,12 +27,14 @@ export async function registerUser(
 	name: string,
 	email: string,
 	password: string,
+	phone: string,
 ) {
 	try {
 		const response = await api.post<User>("/auth/register", {
 			name,
 			email,
 			password,
+			phone,
 		});
 		return response.data;
 	} catch (error) {
