@@ -18,6 +18,7 @@ interface AuthContextType {
 		email: string,
 		password: string,
 		name: string,
+		phone: string,
 	) => Promise<{ error: string | null }>;
 	loginWithGoogle: () => void;
 	logout: () => Promise<void>;
@@ -70,10 +71,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		email: string,
 		password: string,
 		name: string,
+		phone: string,
 	) => {
 		setIsLoading(true);
 		try {
-			const user = await registerUser(name, email, password);
+			const user = await registerUser(name, email, password, phone);
 			if (user) {
 				setUser(user);
 			}
