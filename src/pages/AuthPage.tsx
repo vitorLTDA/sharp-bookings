@@ -1,89 +1,89 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { useAuth } from "@/contexts/AuthContext"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from "@/components/ui/card";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { Scissors, Mail, Lock, User, AlertCircle, Phone } from "lucide-react";
-import { Link } from "react-router-dom";
-import parsePhoneNumberFromString from "libphonenumber-js";
-import { z } from "zod";
+} from "@/components/ui/card"
+import { LoadingSpinner } from "@/components/LoadingSpinner"
+import { Scissors, Mail, Lock, User, AlertCircle, Phone } from "lucide-react"
+import { Link } from "react-router-dom"
+import parsePhoneNumberFromString from "libphonenumber-js"
+import { z } from "zod"
 
 const phoneSchema = z
 	.string("O número de telefone é obrigatório.")
-	.min(13, "O número de telefone deve ter 13 dígitos.");
+	.min(13, "O número de telefone deve ter 13 dígitos.")
 
 export default function AuthPage() {
-	const [mode, setMode] = useState<"login" | "signup">("login");
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
-	const [name, setName] = useState("");
-	const [phone, setPhone] = useState("");
-	const [phoneError, setPhoneError] = useState<string | null>(null);
-	const [error, setError] = useState<string | null>(null);
-	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [mode, setMode] = useState<"login" | "signup">("login")
+	const [email, setEmail] = useState("")
+	const [password, setPassword] = useState("")
+	const [name, setName] = useState("")
+	const [phone, setPhone] = useState("")
+	const [phoneError, setPhoneError] = useState<string | null>(null)
+	const [error, setError] = useState<string | null>(null)
+	const [isSubmitting, setIsSubmitting] = useState(false)
 
-	const { login, signup, loginWithGoogle, isLoading } = useAuth();
-	const navigate = useNavigate();
+	const { login, signup, loginWithGoogle, isLoading } = useAuth()
+	const navigate = useNavigate()
 
 	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setError(null);
-		setIsSubmitting(true);
+		e.preventDefault()
+		setError(null)
+		setIsSubmitting(true)
 
 		try {
-			let result: { error: string | null };
+			let result: { error: string | null }
 			if (mode === "login") {
-				result = await login(email, password);
+				result = await login(email, password)
 			} else {
-				const parsedPhone = parsePhoneNumberFromString(phone, "BR");
+				const parsedPhone = parsePhoneNumberFromString(phone, "BR")
 				if (!parsedPhone || !parsedPhone.isValid()) {
-					setPhoneError("Número de telefone inválido.");
-					setIsSubmitting(false);
-					return;
+					setPhoneError("Número de telefone inválido.")
+					setIsSubmitting(false)
+					return
 				}
 				try {
-					phoneSchema.parse(phone);
+					phoneSchema.parse(phone)
 				} catch {
-					setPhoneError("O número de telefone deve ter 11 dígitos.");
-					setIsSubmitting(false);
-					return;
+					setPhoneError("O número de telefone deve ter 11 dígitos.")
+					setIsSubmitting(false)
+					return
 				}
-				const phoneData = `${parsedPhone.countryCallingCode}${parsedPhone.nationalNumber}`;
-				result = await signup(email, password, name, phoneData);
+				const phoneData = `${parsedPhone.countryCallingCode}${parsedPhone.nationalNumber}`
+				result = await signup(email, password, name, phoneData)
 			}
 
 			if (result.error) {
-				setError(result.error);
+				setError(result.error)
 			} else {
-				navigate("/");
+				navigate("/")
 			}
 		} finally {
-			setIsSubmitting(false);
+			setIsSubmitting(false)
 		}
-	};
+	}
 
 	const handleGoogleAuth = async () => {
-		setError(null);
-		setIsSubmitting(true);
+		setError(null)
+		setIsSubmitting(true)
 
-		await loginWithGoogle();
-	};
+		await loginWithGoogle()
+	}
 
 	if (isLoading && !isSubmitting) {
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-background">
 				<LoadingSpinner size="lg" text="Loading..." />
 			</div>
-		);
+		)
 	}
 
 	return (
@@ -93,18 +93,18 @@ export default function AuthPage() {
 				<div className="flex items-center justify-center gap-2 mb-8">
 					<Link to="/" className="flex items-center gap-2">
 						<Scissors className="h-8 w-8 text-accent" />
-						<span className="text-2xl font-bold">Elite Cuts</span>
+						<span className="text-2xl font-bold">Rafael Libório</span>
 					</Link>
 				</div>
 
 				<Card>
 					<CardHeader className="text-center">
 						<CardTitle>
-							{mode === "login" ? "Welcome Back" : "Create Account"}
+							{mode === "login" ? "Bem-vindo de volta" : "Create Account"}
 						</CardTitle>
 						<CardDescription>
 							{mode === "login"
-								? "Sign in to manage your appointments"
+								? "Entre para gerenciar seus agendamentos"
 								: "Join Elite Cuts to book appointments"}
 						</CardDescription>
 					</CardHeader>
@@ -148,12 +148,12 @@ export default function AuthPage() {
 													const phoneNumber = parsePhoneNumberFromString(
 														e.target.value,
 														"BR",
-													);
+													)
 													const formatted = phoneNumber
 														? phoneNumber.formatNational()
-														: e.target.value;
-													setPhone(formatted);
-													setPhoneError(null);
+														: e.target.value
+													setPhone(formatted)
+													setPhoneError(null)
 												}}
 												className="pl-10"
 												required={mode === "signup"}
@@ -185,7 +185,7 @@ export default function AuthPage() {
 							</div>
 
 							<div className="">
-								<Label htmlFor="password">Password</Label>
+								<Label htmlFor="password">Senha</Label>
 								<div className="relative">
 									<Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 									<Input
@@ -209,14 +209,14 @@ export default function AuthPage() {
 								{isSubmitting ? (
 									<LoadingSpinner size="sm" />
 								) : mode === "login" ? (
-									"Sign In"
+									"Entrar"
 								) : (
 									"Create Account"
 								)}
 							</Button>
 						</form>
 
-						<div className="relative my-6">
+						{/* <div className="relative my-6">
 							<div className="absolute inset-0 flex items-center">
 								<span className="w-full border-t" />
 							</div>
@@ -279,16 +279,16 @@ export default function AuthPage() {
 									</button>
 								</>
 							)}
-						</p>
+						</p> */}
 
 						{/* Demo login hint */}
-						<p className="mt-4 text-center text-xs text-muted-foreground border-t pt-4">
+						{/* <p className="mt-4 text-center text-xs text-muted-foreground border-t pt-4">
 							Demo: Use <strong>barber@elitecuts.com</strong> to access the
 							dashboard
-						</p>
+						</p> */}
 					</CardContent>
 				</Card>
 			</div>
 		</div>
-	);
+	)
 }

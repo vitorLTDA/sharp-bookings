@@ -1,28 +1,29 @@
-import { Scissors, Menu, X, LogOut, LayoutDashboard, User } from "lucide-react";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { shopInfo } from "@/lib/mockData";
-import { useAuth } from "@/contexts/AuthContext";
+import { Scissors, Menu, X, LogOut, LayoutDashboard, User } from "lucide-react"
+import { useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { Button } from "@/components/ui/button"
+import { shopInfo } from "@/lib/mockData"
+import { useAuth } from "@/contexts/AuthContext"
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"
+import { UserRoles } from "@/types/api/user"
 
 export function Header() {
-	const [isMenuOpen, setIsMenuOpen] = useState(false);
-	const { user, isAuthenticated, logout } = useAuth();
-	const navigate = useNavigate();
+	const [isMenuOpen, setIsMenuOpen] = useState(false)
+	const { user, isAuthenticated, logout } = useAuth()
+	const navigate = useNavigate()
 
 	const handleLogout = async () => {
-		await logout();
-		navigate("/");
-	};
+		await logout()
+		navigate("/")
+	}
 
-	const isBarberOrAdmin = user?.role === "barber" || user?.role === "admin";
+	const isBarberOrAdmin = user?.role === UserRoles.ADMIN_ROLE
 
 	return (
 		<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -165,8 +166,8 @@ export function Header() {
 								<Button
 									variant="outline"
 									onClick={() => {
-										handleLogout();
-										setIsMenuOpen(false);
+										handleLogout()
+										setIsMenuOpen(false)
 									}}
 								>
 									<LogOut className="mr-2 h-4 w-4" />
@@ -194,5 +195,5 @@ export function Header() {
 				</div>
 			)}
 		</header>
-	);
+	)
 }

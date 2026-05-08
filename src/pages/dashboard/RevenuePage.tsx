@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { fetchRevenueData, fetchSubscriptions } from '@/lib/mockApi';
-import { getMetrics, RevenueData, Subscription } from '@/lib/mockDashboardData';
+import { getDashboardStats, getRevenueData, getSubscriptions } from '@/api/admin';
+import { RevenueDataPoint, Subscription } from '@/api/admin';
 import { DollarSign, Users, TrendingUp, CreditCard } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -21,37 +22,32 @@ import {
 } from 'recharts';
 
 export default function RevenuePage() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [period, setPeriod] = useState<'7' | '30'>('7');
-  const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [period, setPeriod] = useState<'7d' | '30d'>('7d');
 
-  const metrics = getMetrics();
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ['dashboardStats'],
+    queryFn: getDashboardStats,
+  });
 
-  useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      try {
-        const [revenue, subs] = await Promise.all([
-          fetchRevenueData(period),
-          fetchSubscriptions(),
-        ]);
-        setRevenueData(revenue);
-        setSubscriptions(subs);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadData();
-  }, [period]);
+  const { data: revenueData, isLoading: revenueLoading } = useQuery({
+    queryKey: ['revenue', period],
+    queryFn: () => getRevenueData(period),
+  });
 
-  const totalRevenue = revenueData.reduce((sum, d) => sum + d.revenue, 0);
-  const totalBookings = revenueData.reduce((sum, d) => sum + d.bookings, 0);
+  const { data: subscriptions, isLoading: subsLoading } = useQuery({
+    queryKey: ['subscriptions'],
+    queryFn: getSubscriptions,
+  });
+
+  const isLoading = statsLoading || revenueLoading || subsLoading;
+
+  const totalRevenue = revenueData?.reduce((sum, d) => sum + d.revenue, 0) || 0;
+  const totalBookings = revenueData?.reduce((sum, d) => sum + d.bookings, 0) || 0;
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <LoadingSpinner size="lg" text="Loading revenue data..." />
+        <LoadingSpinner size="lg" text="Carregando dados de receita..." />
       </div>
     );
   }
@@ -59,30 +55,30 @@ export default function RevenuePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Revenue & Subscriptions</h2>
-        <p className="text-muted-foreground">Track your earnings and subscriber metrics.</p>
+        <h2 className="text-2xl font-bold">Receita e Assinaturas</h2>
+        <p className="text-muted-foreground">Acompanhe seus ganhos e métricas de assinantes.</p>
       </div>
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           icon={DollarSign}
-          label="Monthly Revenue"
-          value={`$${metrics.monthlyRevenue.toFixed(2)}`}
+          label="Receita Mensal"
+          value={`$${(stats?.monthlyRevenue || 0).toFixed(2)}`}
         />
         <StatsCard
           icon={Users}
-          label="Active Subscriptions"
-          value={metrics.activeSubscriptions}
+          label="Assinaturas Ativas"
+          value={stats?.activeSubscriptions || 0}
         />
         <StatsCard
           icon={TrendingUp}
-          label={`Revenue (${period}d)`}
+          label={`Receita (${period})`}
           value={`$${totalRevenue.toFixed(2)}`}
         />
         <StatsCard
           icon={CreditCard}
-          label={`Bookings (${period}d)`}
+          label={`Agendamentos (${period})`}
           value={totalBookings}
         />
       </div>
@@ -90,18 +86,18 @@ export default function RevenuePage() {
       {/* Period Toggle */}
       <div className="flex gap-2">
         <Button
-          variant={period === '7' ? 'default' : 'outline'}
+          variant={period === '7d' ? 'default' : 'outline'}
           size="sm"
-          onClick={() => setPeriod('7')}
+          onClick={() => setPeriod('7d')}
         >
-          Last 7 Days
+          Últimos 7 Dias
         </Button>
         <Button
-          variant={period === '30' ? 'default' : 'outline'}
+          variant={period === '30d' ? 'default' : 'outline'}
           size="sm"
-          onClick={() => setPeriod('30')}
+          onClick={() => setPeriod('30d')}
         >
-          Last 30 Days
+          Últimos 30 Dias
         </Button>
       </div>
 
@@ -110,8 +106,8 @@ export default function RevenuePage() {
         {/* Bookings Bar Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>Bookings</CardTitle>
-            <CardDescription>Number of appointments per day</CardDescription>
+            <CardTitle>Agendamentos</CardTitle>
+            <CardDescription>Número de agendamentos por dia</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[250px]">
@@ -120,13 +116,13 @@ export default function RevenuePage() {
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis
                     dataKey="date"
-                    tickFormatter={(value) => format(new Date(value), period === '7' ? 'EEE' : 'MMM d')}
+                    tickFormatter={(value) => format(new Date(value), period === '7d' ? 'EEE' : 'MMM d')}
                     fontSize={12}
                   />
                   <YAxis fontSize={12} />
                   <Tooltip
                     labelFormatter={(value) => format(new Date(value), 'MMM d, yyyy')}
-                    formatter={(value: number) => [value, 'Bookings']}
+                    formatter={(value: number) => [value, 'Agendamentos']}
                     contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
                   />
                   <Bar dataKey="bookings" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
@@ -139,8 +135,8 @@ export default function RevenuePage() {
         {/* Revenue Line Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>Revenue Trend</CardTitle>
-            <CardDescription>Daily revenue over time</CardDescription>
+            <CardTitle>Tendência de Receita</CardTitle>
+            <CardDescription>Receita diária ao longo do tempo</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[250px]">
@@ -149,13 +145,13 @@ export default function RevenuePage() {
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis
                     dataKey="date"
-                    tickFormatter={(value) => format(new Date(value), period === '7' ? 'EEE' : 'MMM d')}
+                    tickFormatter={(value) => format(new Date(value), period === '7d' ? 'EEE' : 'MMM d')}
                     fontSize={12}
                   />
                   <YAxis fontSize={12} tickFormatter={(value) => `$${value}`} />
                   <Tooltip
                     labelFormatter={(value) => format(new Date(value), 'MMM d, yyyy')}
-                    formatter={(value: number) => [`$${value.toFixed(2)}`, 'Revenue']}
+                    formatter={(value: number) => [`$${value.toFixed(2)}`, 'Receita']}
                     contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
                   />
                   <Line
@@ -172,11 +168,11 @@ export default function RevenuePage() {
         </Card>
       </div>
 
-      {/* Subscriptions List */}
+        {/* Subscriptions List */}
       <Card>
         <CardHeader>
-          <CardTitle>Active Subscriptions</CardTitle>
-          <CardDescription>Current subscribers and their plans</CardDescription>
+          <CardTitle>Assinaturas Ativas</CardTitle>
+          <CardDescription>Assinantes atuais e seus planos</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -188,16 +184,16 @@ export default function RevenuePage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <Badge
-                    variant={
-                      sub.plan === 'business'
-                        ? 'default'
-                        : sub.plan === 'pro'
-                        ? 'secondary'
-                        : 'outline'
-                    }
-                  >
-                    {sub.plan.charAt(0).toUpperCase() + sub.plan.slice(1)}
-                  </Badge>
+                     variant={
+                       sub.plan === 'ANNUAL'
+                         ? 'default'
+                         : sub.plan === 'QUARTERLY'
+                         ? 'secondary'
+                         : 'outline'
+                     }
+                   >
+                     {sub.plan.charAt(0).toUpperCase() + sub.plan.slice(1).toLowerCase()}
+                   </Badge>
                   <span className="text-sm font-medium">${sub.amount}/mo</span>
                 </div>
               </div>

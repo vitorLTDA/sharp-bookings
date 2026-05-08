@@ -9,7 +9,7 @@ interface WeeklyCalendarProps {
 }
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAY_LABELS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 const HOURS = Array.from({ length: 9 }, (_, i) => `${(9 + i).toString().padStart(2, '0')}:00`);
 
 export function WeeklyCalendar({ availability, onAvailabilityChange }: WeeklyCalendarProps) {
@@ -61,7 +61,7 @@ export function WeeklyCalendar({ availability, onAvailabilityChange }: WeeklyCal
       <div className="min-w-[600px]">
         {/* Header */}
         <div className="grid grid-cols-8 gap-1 mb-2">
-          <div className="p-2 text-sm font-medium text-muted-foreground">Time</div>
+          <div className="p-2 text-sm font-medium text-muted-foreground">Horário</div>
           {DAY_LABELS.map((day, i) => (
             <div key={day} className="p-2 text-center">
               <span className="text-sm font-medium">{day}</span>
@@ -72,7 +72,7 @@ export function WeeklyCalendar({ availability, onAvailabilityChange }: WeeklyCal
                   className="h-5 px-1 text-xs"
                   onClick={() => setAllDay(DAYS[i], true)}
                 >
-                  All
+                  Todos
                 </Button>
                 <Button
                   variant="ghost"
@@ -80,7 +80,7 @@ export function WeeklyCalendar({ availability, onAvailabilityChange }: WeeklyCal
                   className="h-5 px-1 text-xs"
                   onClick={() => setAllDay(DAYS[i], false)}
                 >
-                  None
+                  Nenhum
                 </Button>
               </div>
             </div>
@@ -116,11 +116,11 @@ export function WeeklyCalendar({ availability, onAvailabilityChange }: WeeklyCal
         <div className="flex items-center gap-4 mt-4 text-sm">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded bg-success/20 border border-success/30" />
-            <span className="text-muted-foreground">Available</span>
+            <span className="text-muted-foreground">Disponível</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded bg-muted/50 border border-border" />
-            <span className="text-muted-foreground">Blocked</span>
+            <span className="text-muted-foreground">Bloqueado</span>
           </div>
         </div>
       </div>
