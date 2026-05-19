@@ -23,15 +23,14 @@ import {
 	LogOut,
 	Scissors,
 	Menu,
+	MessageSquare,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { UserRoles } from "@/types/api/user"
 
 const menuItems = [
-	/* { title: "Visão Geral", url: "/dashboard", icon: LayoutDashboard, end: true }, */
 	{ title: "Agendamentos", url: "/dashboard/appointments", icon: Calendar },
-	/* 	{ title: "Disponibilidade", url: "/dashboard/availability", icon: Clock },
-	{ title: "Receita", url: "/dashboard/revenue", icon: DollarSign }, */
+	{ title: "Conversas", url: "/dashboard/conversations", icon: MessageSquare },
 ]
 
 function DashboardSidebar() {
@@ -62,7 +61,7 @@ function DashboardSidebar() {
 									<SidebarMenuButton asChild>
 										<NavLink
 											to={item.url}
-											end={item.end}
+											
 											className={({ isActive }) =>
 												cn(
 													"flex items-center gap-2 px-3 py-2 rounded-md transition-colors",

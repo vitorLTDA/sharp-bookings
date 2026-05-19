@@ -17,6 +17,7 @@ import DashboardPage from "./pages/dashboard/DashboardPage";
 import AppointmentsPage from "./pages/dashboard/AppointmentsPage";
 import AvailabilityPage from "./pages/dashboard/AvailabilityPage";
 import RevenuePage from "./pages/dashboard/RevenuePage";
+import ConversationsPage from "./pages/dashboard/ConversationsPage";
 import NotFound from "./pages/NotFound";
 import { AuthCallback } from "./pages/AuthCallback";
 
@@ -42,6 +43,7 @@ const App = () => (
 							<Route path="/dashboard" element={<DashboardLayout />}>
 								<Route index element={<DashboardPage />} />
 								<Route path="appointments" element={<AppointmentsPage />} />
+								<Route path="conversations" element={<ConversationsPage />} />
 								<Route path="availability" element={<AvailabilityPage />} />
 								<Route path="revenue" element={<RevenuePage />} />
 							</Route>
