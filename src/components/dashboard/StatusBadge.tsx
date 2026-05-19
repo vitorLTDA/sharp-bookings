@@ -1,23 +1,26 @@
 import { cn } from '@/lib/utils';
-import { AppointmentStatus } from '@/lib/mockDashboardData';
 
 interface StatusBadgeProps {
-  status: AppointmentStatus;
+  status: string;
   className?: string;
 }
 
-const statusConfig: Record<AppointmentStatus, { label: string; className: string }> = {
-  paid: {
-    label: 'Paid',
+const statusConfig: Record<string, { label: string; className: string }> = {
+  BOOKED: {
+    label: 'Pago',
     className: 'bg-success/10 text-success border-success/20',
   },
-  unpaid: {
-    label: 'Unpaid',
+  RESERVED: {
+    label: 'Não Pago',
     className: 'bg-warning/10 text-warning border-warning/20',
   },
-  canceled: {
-    label: 'Canceled',
+  CANCELED: {
+    label: 'Cancelado',
     className: 'bg-destructive/10 text-destructive border-destructive/20',
+  },
+  COMPLETED: {
+    label: 'Concluído',
+    className: 'bg-success/10 text-success border-success/20',
   },
 };
 

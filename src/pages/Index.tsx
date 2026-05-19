@@ -1,21 +1,27 @@
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import { HeroSection } from '@/components/HeroSection';
-import { TeamSection } from '@/components/TeamSection';
-import { ContactSection } from '@/components/ContactSection';
+import { Header } from "@/components/Header"
+import { Footer } from "@/components/Footer"
+import { HeroSection } from "@/components/HeroSection"
+import { TeamSection } from "@/components/TeamSection"
+import { ContactSection } from "@/components/ContactSection"
+import { useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 
 const Index = () => {
-  return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
-      <main className="flex-1">
-        <HeroSection />
-        <TeamSection />
-        <ContactSection />
-      </main>
-      <Footer />
-    </div>
-  );
-};
+	const navigate = useNavigate()
+	useEffect(() => {
+		navigate("/dashboard/appointments")
+	}, [navigate])
+	return (
+		<div className="flex min-h-screen flex-col">
+			<Header />
+			<main className="flex-1">
+				<HeroSection />
+				<TeamSection />
+				<ContactSection />
+			</main>
+			<Footer />
+		</div>
+	)
+}
 
-export default Index;
+export default Index
