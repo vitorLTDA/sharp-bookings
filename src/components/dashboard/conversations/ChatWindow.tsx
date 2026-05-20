@@ -26,7 +26,7 @@ interface Props {
 export function ChatWindow({ conversation, onBack }: Props) {
 	const queryClient = useQueryClient();
 	const { toast } = useToast();
-	const scrollRef = useRef<HTMLDivElement>(null);
+	const scrollAreaRef = useRef<HTMLDivElement>(null);
 
 	const conversationId = conversation?.id;
 
@@ -47,10 +47,18 @@ export function ChatWindow({ conversation, onBack }: Props) {
 			});
 		}
 	}, [conversationId, conversation?.unreadCount, queryClient]);
-	useEffect(() => {
-		if (scrollRef.current) {
-			scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+
+	const scrollToBottom = () => {
+		const viewport = scrollAreaRef.current?.querySelector(
+			"[data-radix-scroll-area-viewport]",
+		) as HTMLElement | null;
+		if (viewport) {
+			viewport.scrollTop = viewport.scrollHeight;
 		}
+	};
+
+	useEffect(() => {
+		scrollToBottom();
 	}, [messages]);
 
 	const sendMutation = useMutation({
@@ -96,6 +104,7 @@ export function ChatWindow({ conversation, onBack }: Props) {
 				queryKey: ["conversation-messages", conversationId],
 			});
 			queryClient.invalidateQueries({ queryKey: ["conversations"] });
+			scrollToBottom();
 		},
 	});
 
@@ -158,8 +167,8 @@ export function ChatWindow({ conversation, onBack }: Props) {
 				onBack={onBack}
 			/>
 
-			<ScrollArea className="flex-1">
-				<div ref={scrollRef} className="p-4 max-w-3xl mx-auto w-full">
+			<ScrollArea ref={scrollAreaRef} className="flex-1">
+				<div className="p-4 max-w-3xl mx-auto w-full">
 					{isLoading ? (
 						<div className="space-y-3">
 							{Array.from({ length: 5 }).map((_, i) => (
