@@ -8,15 +8,17 @@ import {
 import { ConversationList } from "@/components/dashboard/conversations/ConversationList"
 import { ChatWindow } from "@/components/dashboard/conversations/ChatWindow"
 import { cn } from "@/lib/utils"
+import { useConversationsSSE } from "@/hooks/use-conversations-sse"
 
 export default function ConversationsPage() {
 	const [filters, setFilters] = useState<ConversationFilters>({ status: "all" })
 	const [activeId, setActiveId] = useState<string | undefined>()
 
+	useConversationsSSE()
+
 	const { data: conversations, isLoading } = useQuery({
 		queryKey: ["conversations", filters],
 		queryFn: () => getConversations(filters),
-		refetchInterval: 15000,
 	})
 
 	const active = conversations?.find(c => c.id === activeId)
