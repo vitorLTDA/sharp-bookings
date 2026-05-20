@@ -133,7 +133,8 @@ export function ChatWindow({ conversation, onBack }: Props) {
 				variant: "destructive",
 			});
 		},
-		onSuccess: enabled => {
+		onSuccess: res => {
+			const enabled = res.humanTakeover;
 			toast({
 				title: enabled ? "Human Takeover On" : "Bot Resumed",
 				description: enabled
