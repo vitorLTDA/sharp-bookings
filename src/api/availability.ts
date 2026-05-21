@@ -6,7 +6,7 @@ export interface AvailabilitySlot {
 	id: string;
 	startDateTime: string;
 	endDateTime: string;
-	status: "AVAILABLE" | "BOOKED" | "RESERVED";
+	status: "AVAILABLE" | "BOOKED" | "RESERVED" | "BLOCKED";
 	maxReservations: number;
 	reservedBy: unknown;
 }
@@ -19,6 +19,23 @@ export async function getAvailableSlots(date: string): Promise<TimeSlot[]> {
 		console.error("Error fetching available slots:", error);
 		throw error;
 	}
+}
+
+export async function getAdminSlotsForDate(
+	date: string,
+): Promise<AvailabilitySlot[]> {
+	const response = await api.get<AvailabilitySlot[]>(`/availability/${date}`);
+	return response.data;
+}
+
+export async function blockSlots(slotIds: string[]) {
+	const response = await api.post("/admin/slots/block", { slotIds });
+	return response.data;
+}
+
+export async function unblockSlots(slotIds: string[]) {
+	const response = await api.post("/admin/slots/unblock", { slotIds });
+	return response.data;
 }
 
 export interface CustomerInfo {

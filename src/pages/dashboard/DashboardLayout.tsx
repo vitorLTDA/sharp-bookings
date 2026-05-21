@@ -18,6 +18,7 @@ import {
 import {
 	LayoutDashboard,
 	Calendar,
+	CalendarClock,
 	Clock,
 	DollarSign,
 	LogOut,
@@ -30,6 +31,7 @@ import { UserRoles } from "@/types/api/user"
 
 const menuItems = [
 	{ title: "Agendamentos", url: "/dashboard/appointments", icon: Calendar },
+	{ title: "Disponibilidade", url: "/dashboard/availability", icon: CalendarClock },
 	{ title: "Conversas", url: "/dashboard/conversations", icon: MessageSquare },
 ]
 
