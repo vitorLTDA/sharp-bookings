@@ -1,16 +1,12 @@
-import { Header } from "@/components/Header"
-import { Footer } from "@/components/Footer"
-import { HeroSection } from "@/components/HeroSection"
-import { TeamSection } from "@/components/TeamSection"
-import { ContactSection } from "@/components/ContactSection"
-import { useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { HeroSection } from "@/components/HeroSection";
+import { TeamSection } from "@/components/TeamSection";
+import { ContactSection } from "@/components/ContactSection";
+import { Navigate } from "react-router-dom";
 
 const Index = () => {
-	const navigate = useNavigate()
-	useEffect(() => {
-		navigate("/dashboard/appointments")
-	}, [navigate])
+	return <Navigate to={"/dashboard/appointments"} replace />;
 	return (
 		<div className="flex min-h-screen flex-col">
 			<Header />
@@ -21,7 +17,7 @@ const Index = () => {
 			</main>
 			<Footer />
 		</div>
-	)
-}
+	);
+};
 
-export default Index
+export default Index;
