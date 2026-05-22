@@ -25,6 +25,7 @@ import { getAppointments, AdminAppointment } from "@/api/admin"
 import { TimeSlotGrid } from "@/components/dashboard/availability/TimeSlotGrid"
 import { BookingConflictModal } from "@/components/dashboard/availability/BookingConflictModal"
 import { BookingInfoCard } from "@/components/dashboard/availability/BookingInfoCard"
+import { WorkingHoursSection } from "@/components/dashboard/availability/WorkingHoursSection"
 import { Lock, Unlock, X, CalendarDays } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -217,6 +218,8 @@ export default function AvailabilityPage() {
 					</Button>
 				</div>
 			</div>
+
+			<WorkingHoursSection />
 
 			<div className="grid gap-6 lg:grid-cols-[320px_1fr]">
 				<div className="space-y-4">
