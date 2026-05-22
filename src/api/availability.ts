@@ -24,7 +24,9 @@ export async function getAvailableSlots(date: string): Promise<TimeSlot[]> {
 export async function getAdminSlotsForDate(
 	date: string,
 ): Promise<AvailabilitySlot[]> {
-	const response = await api.get<AvailabilitySlot[]>(`/availability/${date}`);
+	const response = await api.get<AvailabilitySlot[]>(`/admin/slots`, {
+		params: { date },
+	});
 	return response.data;
 }
 
@@ -46,7 +48,10 @@ export interface CustomerInfo {
 
 export async function reserveSlot(slotId: string, customerInfo: CustomerInfo) {
 	try {
-		const response = await api.post("/slots/reserve", { slotId, ...customerInfo });
+		const response = await api.post("/slots/reserve", {
+			slotId,
+			...customerInfo,
+		});
 		return response.data;
 	} catch (error) {
 		console.error("Error reserving slot:", error);
