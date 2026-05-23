@@ -1,4 +1,4 @@
-import { format } from "date-fns"
+import { format } from "date-fns";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -8,17 +8,17 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
-import { AdminAppointment } from "@/api/admin"
-import { AlertTriangle, User, Phone, Calendar } from "lucide-react"
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { AdminAppointment } from "@/api/admin";
+import { AlertTriangle, User, Phone, Calendar } from "lucide-react";
 
 interface WorkingHoursConflictModalProps {
-	open: boolean
-	onOpenChange: (open: boolean) => void
-	affected: AdminAppointment[]
-	onConfirm: () => void
-	isPending?: boolean
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	affected: AdminAppointment[];
+	onConfirm: () => void;
+	isPending?: boolean;
 }
 
 export function WorkingHoursConflictModal({
@@ -61,7 +61,7 @@ export function WorkingHoursConflictModal({
 							</div>
 							<div className="flex items-center gap-2 text-muted-foreground text-xs">
 								<Calendar className="h-3 w-3" />
-								{format(new Date(`${b.date}T${b.time}`), "dd/MM/yyyy 'às' HH:mm")}
+								{format(new Date(`${b.date}`), "dd/MM/yyyy 'às' HH:mm")}
 							</div>
 							{b.customerPhone && (
 								<div className="flex items-center gap-2 text-muted-foreground text-xs">
@@ -85,5 +85,5 @@ export function WorkingHoursConflictModal({
 				</AlertDialogFooter>
 			</AlertDialogContent>
 		</AlertDialog>
-	)
+	);
 }

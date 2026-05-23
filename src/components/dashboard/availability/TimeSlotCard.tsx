@@ -1,14 +1,19 @@
-import { cn } from "@/lib/utils"
-import { Check, Lock, User, AlertCircle } from "lucide-react"
-import { AvailabilitySlot } from "@/api/availability"
-import { format } from "date-fns"
+import { cn } from "@/lib/utils";
+import { Check, Lock, User, AlertCircle, XCircle } from "lucide-react";
+import { AvailabilitySlot } from "@/api/availability";
+import { format } from "date-fns";
 
-export type SlotState = "AVAILABLE" | "BLOCKED" | "BOOKED" | "RESERVED"
+export type SlotState =
+	| "AVAILABLE"
+	| "BLOCKED"
+	| "BOOKED"
+	| "RESERVED"
+	| "CANCELED";
 
 interface TimeSlotCardProps {
-	slot: AvailabilitySlot
-	selected: boolean
-	onClick: () => void
+	slot: AvailabilitySlot;
+	selected: boolean;
+	onClick: () => void;
 }
 
 const stateStyles: Record<SlotState, string> = {
@@ -19,27 +24,31 @@ const stateStyles: Record<SlotState, string> = {
 	BOOKED: "border-accent/40 bg-accent/10 text-foreground hover:bg-accent/15",
 	RESERVED:
 		"border-amber-500/40 bg-amber-500/10 text-foreground hover:bg-amber-500/15",
-}
+	CANCELED:
+		"border-red-500/40 bg-red-500/10 text-foreground hover:bg-red-500/15",
+};
 
 const stateLabels: Record<SlotState, string> = {
 	AVAILABLE: "Disponível",
 	BLOCKED: "Bloqueado",
 	BOOKED: "Reservado",
 	RESERVED: "Pendente",
-}
+	CANCELED: "Cancelado",
+};
 
 const stateIcons: Record<SlotState, React.ElementType> = {
 	AVAILABLE: Check,
 	BLOCKED: Lock,
 	BOOKED: User,
 	RESERVED: AlertCircle,
-}
+	CANCELED: XCircle,
+};
 
 export function TimeSlotCard({ slot, selected, onClick }: TimeSlotCardProps) {
-	const state = slot.status as SlotState
-	const Icon = stateIcons[state]
-	const start = format(new Date(slot.startDateTime), "HH:mm")
-	const end = format(new Date(slot.endDateTime), "HH:mm")
+	const state = slot.status as SlotState;
+	const Icon = stateIcons[state];
+	const start = format(new Date(slot.startDateTime), "HH:mm");
+	const end = format(new Date(slot.endDateTime), "HH:mm");
 
 	return (
 		<button
@@ -62,5 +71,5 @@ export function TimeSlotCard({ slot, selected, onClick }: TimeSlotCardProps) {
 				{stateLabels[state]}
 			</span>
 		</button>
-	)
+	);
 }

@@ -1,71 +1,73 @@
-import { useMemo, useState } from "react"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { format } from "date-fns"
-import { ptBR } from "date-fns/locale"
+import { useMemo, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Separator } from "@/components/ui/separator"
-import { useToast } from "@/hooks/use-toast"
-import { LoadingSpinner } from "@/components/LoadingSpinner"
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
 	getAdminSlotsForDate,
 	blockSlots,
 	unblockSlots,
 	AvailabilitySlot,
-} from "@/api/availability"
-import { getAppointments, AdminAppointment } from "@/api/admin"
-import { TimeSlotGrid } from "@/components/dashboard/availability/TimeSlotGrid"
-import { BookingConflictModal } from "@/components/dashboard/availability/BookingConflictModal"
-import { BookingInfoCard } from "@/components/dashboard/availability/BookingInfoCard"
-import { WorkingHoursSection } from "@/components/dashboard/availability/WorkingHoursSection"
-import { Lock, Unlock, X, CalendarDays } from "lucide-react"
-import { cn } from "@/lib/utils"
+} from "@/api/availability";
+import { getAppointments, AdminAppointment } from "@/api/admin";
+import { TimeSlotGrid } from "@/components/dashboard/availability/TimeSlotGrid";
+import { BookingConflictModal } from "@/components/dashboard/availability/BookingConflictModal";
+import { BookingInfoCard } from "@/components/dashboard/availability/BookingInfoCard";
+import { WorkingHoursSection } from "@/components/dashboard/availability/WorkingHoursSection";
+import { Lock, Unlock, X, CalendarDays } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function AvailabilityPage() {
-	const queryClient = useQueryClient()
-	const { toast } = useToast()
-	const [selectedDate, setSelectedDate] = useState<Date>(new Date())
-	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-	const [conflictOpen, setConflictOpen] = useState(false)
+	const queryClient = useQueryClient();
+	const { toast } = useToast();
+	const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+	const [conflictOpen, setConflictOpen] = useState(false);
 
-	const dateKey = format(selectedDate, "yyyy-MM-dd")
+	const dateKey = format(selectedDate, "yyyy-MM-dd");
+	const endDateKey = format(
+		new Date(dateKey).setDate(selectedDate.getDate() + 1),
+		"yyyy-MM-dd",
+	);
 
 	const { data: slots = [], isLoading: slotsLoading } = useQuery({
 		queryKey: ["admin-slots", dateKey],
 		queryFn: () => getAdminSlotsForDate(dateKey),
-	})
+	});
 
 	const { data: bookings = [], isLoading: bookingsLoading } = useQuery({
 		queryKey: ["admin-day-bookings", dateKey],
-		queryFn: () =>
-			getAppointments({ startDate: dateKey, endDate: dateKey }),
-	})
-
+		queryFn: () => getAppointments({ startDate: dateKey, endDate: endDateKey }),
+	});
 	const bookingsBySlot = useMemo(() => {
-		const map = new Map<string, AdminAppointment[]>()
+		const map = new Map<string, AdminAppointment[]>();
 		for (const b of bookings) {
-			const list = map.get(b.slotId) ?? []
-			list.push(b)
-			map.set(b.slotId, list)
+			const list = map.get(b.slotId) ?? [];
+			list.push(b);
+			map.set(b.slotId, list);
 		}
-		return map
-	}, [bookings])
+		return map;
+	}, [bookings]);
 
 	const selectedSlots = useMemo(
 		() => slots.filter(s => selectedIds.has(s.id)),
 		[slots, selectedIds],
-	)
+	);
 
-	const blockable = selectedSlots.filter(s => s.status !== "BLOCKED")
-	const unblockable = selectedSlots.filter(s => s.status === "BLOCKED")
+	const blockable = selectedSlots.filter(s => s.status !== "BLOCKED");
+	const unblockable = selectedSlots.filter(s => s.status === "BLOCKED");
 
 	const conflicts = useMemo(
 		() =>
@@ -74,119 +76,127 @@ export default function AvailabilityPage() {
 					slot,
 					bookings: bookingsBySlot.get(slot.id) ?? [],
 				}))
-				.filter(c => c.bookings.length > 0),
+				.filter(c => c.bookings.length > 0)
+				.filter(
+					c => !c.bookings.map(booking => booking.status).includes("CANCELED"),
+				),
 		[blockable, bookingsBySlot],
-	)
+	);
 
 	const toggleSlot = (slot: AvailabilitySlot) => {
 		setSelectedIds(prev => {
-			const next = new Set(prev)
-			if (next.has(slot.id)) next.delete(slot.id)
-			else next.add(slot.id)
-			return next
-		})
-	}
+			const next = new Set(prev);
+			if (next.has(slot.id)) next.delete(slot.id);
+			else next.add(slot.id);
+			return next;
+		});
+	};
 
 	const invalidate = () => {
-		queryClient.invalidateQueries({ queryKey: ["admin-slots", dateKey] })
+		queryClient.invalidateQueries({ queryKey: ["admin-slots", dateKey] });
 		queryClient.invalidateQueries({
 			queryKey: ["admin-day-bookings", dateKey],
-		})
-	}
+		});
+	};
 
 	const blockMutation = useMutation({
 		mutationFn: (ids: string[]) => blockSlots(ids),
 		onMutate: async ids => {
-			await queryClient.cancelQueries({ queryKey: ["admin-slots", dateKey] })
+			await queryClient.cancelQueries({ queryKey: ["admin-slots", dateKey] });
 			const prev = queryClient.getQueryData<AvailabilitySlot[]>([
 				"admin-slots",
 				dateKey,
-			])
+			]);
 			queryClient.setQueryData<AvailabilitySlot[]>(
 				["admin-slots", dateKey],
 				old =>
 					old?.map(s =>
 						ids.includes(s.id) ? { ...s, status: "BLOCKED" } : s,
 					) ?? [],
-			)
-			return { prev }
+			);
+			return { prev };
 		},
 		onError: (_err, _vars, ctx) => {
 			if (ctx?.prev)
-				queryClient.setQueryData(["admin-slots", dateKey], ctx.prev)
+				queryClient.setQueryData(["admin-slots", dateKey], ctx.prev);
 			toast({
 				title: "Erro",
 				description: "Não foi possível bloquear os horários.",
 				variant: "destructive",
-			})
+			});
 		},
 		onSuccess: () => {
 			toast({
 				title: "Horários bloqueados",
-				description: "Os horários selecionados foram marcados como indisponíveis.",
-			})
-			setSelectedIds(new Set())
-			setConflictOpen(false)
+				description:
+					"Os horários selecionados foram marcados como indisponíveis.",
+			});
+			setSelectedIds(new Set());
+			setConflictOpen(false);
 		},
 		onSettled: invalidate,
-	})
+	});
 
 	const unblockMutation = useMutation({
 		mutationFn: (ids: string[]) => unblockSlots(ids),
 		onMutate: async ids => {
-			await queryClient.cancelQueries({ queryKey: ["admin-slots", dateKey] })
+			await queryClient.cancelQueries({ queryKey: ["admin-slots", dateKey] });
 			const prev = queryClient.getQueryData<AvailabilitySlot[]>([
 				"admin-slots",
 				dateKey,
-			])
+			]);
 			queryClient.setQueryData<AvailabilitySlot[]>(
 				["admin-slots", dateKey],
 				old =>
 					old?.map(s =>
 						ids.includes(s.id) ? { ...s, status: "AVAILABLE" } : s,
 					) ?? [],
-			)
-			return { prev }
+			);
+			return { prev };
 		},
 		onError: (_err, _vars, ctx) => {
 			if (ctx?.prev)
-				queryClient.setQueryData(["admin-slots", dateKey], ctx.prev)
+				queryClient.setQueryData(["admin-slots", dateKey], ctx.prev);
 			toast({
 				title: "Erro",
 				description: "Não foi possível desbloquear os horários.",
 				variant: "destructive",
-			})
+			});
 		},
 		onSuccess: () => {
 			toast({
 				title: "Horários liberados",
 				description: "Os horários selecionados agora estão disponíveis.",
-			})
-			setSelectedIds(new Set())
+			});
+			setSelectedIds(new Set());
 		},
 		onSettled: invalidate,
-	})
+	});
 
 	const handleBlock = () => {
-		if (blockable.length === 0) return
+		if (blockable.length === 0) return;
 		if (conflicts.length > 0) {
-			setConflictOpen(true)
-			return
+			setConflictOpen(true);
+			return;
 		}
-		blockMutation.mutate(blockable.map(s => s.id))
-	}
+		blockMutation.mutate(blockable.map(s => s.id));
+	};
 
 	const handleUnblock = () => {
-		if (unblockable.length === 0) return
-		unblockMutation.mutate(unblockable.map(s => s.id))
-	}
+		if (unblockable.length === 0) return;
+		unblockMutation.mutate(unblockable.map(s => s.id));
+	};
 
 	const legendItems = [
-		{ label: "Disponível", className: "bg-emerald-500/20 border-emerald-500/40" },
+		{
+			label: "Disponível",
+			className: "bg-emerald-500/20 border-emerald-500/40",
+		},
 		{ label: "Bloqueado", className: "bg-muted border-muted-foreground/40" },
 		{ label: "Reservado", className: "bg-accent/20 border-accent/40" },
 		{ label: "Pendente", className: "bg-amber-500/20 border-amber-500/40" },
-	]
+		{ label: "Cancelado", className: "bg-red-500/20 border-red-500/40" },
+	];
 
 	return (
 		<div className="space-y-6">
@@ -201,9 +211,7 @@ export default function AvailabilityPage() {
 					<Button
 						variant="outline"
 						onClick={handleUnblock}
-						disabled={
-							unblockable.length === 0 || unblockMutation.isPending
-						}
+						disabled={unblockable.length === 0 || unblockMutation.isPending}
 					>
 						<Unlock className="mr-2 h-4 w-4" />
 						Liberar ({unblockable.length})
@@ -218,8 +226,6 @@ export default function AvailabilityPage() {
 					</Button>
 				</div>
 			</div>
-
-			<WorkingHoursSection />
 
 			<div className="grid gap-6 lg:grid-cols-[320px_1fr]">
 				<div className="space-y-4">
@@ -236,8 +242,8 @@ export default function AvailabilityPage() {
 								selected={selectedDate}
 								onSelect={d => {
 									if (d) {
-										setSelectedDate(d)
-										setSelectedIds(new Set())
+										setSelectedDate(d);
+										setSelectedIds(new Set());
 									}
 								}}
 								locale={ptBR}
@@ -249,9 +255,7 @@ export default function AvailabilityPage() {
 					<Card>
 						<CardHeader className="pb-3">
 							<CardTitle className="text-base">Agendamentos do dia</CardTitle>
-							<CardDescription>
-								{bookings.length} no total
-							</CardDescription>
+							<CardDescription>{bookings.length} no total</CardDescription>
 						</CardHeader>
 						<CardContent>
 							{bookingsLoading ? (
@@ -324,6 +328,8 @@ export default function AvailabilityPage() {
 				</Card>
 			</div>
 
+			<WorkingHoursSection />
+
 			<BookingConflictModal
 				open={conflictOpen}
 				onOpenChange={setConflictOpen}
@@ -332,5 +338,5 @@ export default function AvailabilityPage() {
 				onConfirm={() => blockMutation.mutate(blockable.map(s => s.id))}
 			/>
 		</div>
-	)
+	);
 }
